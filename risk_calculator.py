@@ -27,7 +27,7 @@ class RiskCalculator:
 
         self.patient_gender = Entry(self.m, width=30)
         self.patient_gender.grid(row=6, column=1)
-        self.genderLab = Label(self.m, text="Gender")
+        self.genderLab = Label(self.m, text="Gender(M/F)")
         self.genderLab.grid(row=6, column=0)
 
         # create Text boxes for both tables
@@ -70,8 +70,7 @@ class RiskCalculator:
         loaded_model = pickle.load(open(filename, 'rb'))
         test_data=self.preprocessing_data(test_data)
         y_pred_test = loaded_model.predict_proba(test_data)
-        print(y_pred_test)
-        return y_pred_test[0][0]
+        return round(y_pred_test[0][1],3)
 
     def predict_risk(self):
         id = int(self.patient_id.get())
