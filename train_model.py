@@ -1,57 +1,50 @@
-import sklearn
+import numpy as np
+import random
+rows = []
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import pickle
-import numpy as np
-
 
 class ModelTrainer():
+    def generate_training_data():
+        rows = []
+        age_range = np.arange(20, 100, 1).tolist()
+        gender = ['M', 'F']
+        diabetes = [0, 1]
 
-    rows=[]
-    age_range=np.arange(20,100,1).toList()
-    gender=np.random.sample(['M','F'],1)
-    diabetes=np.random.sample([0,1],1)
+        for x in range(1,50):
+            dict_row={"patient_id":x,
+                    "gender": random.choice(gender),
+                    "diabetes": random.choice(diabetes),
+                    "age": np.random.choice(age_range)
+                      }
+            rows.append(dict_row)
+        train_data=pd.DataFrame.from_dict(rows)
+        return train_data
 
-    data = {'age': [30, 60, 65, 66],'gender': ['F', 'M', 'M', 'M',], 'diabetes': [0, 1, 1, 1]}
-    train_data=pd.DataFrame.from_dict(data)
+    def train_rf_model(train_data):
+        gender_map = {"M": 1, "F": 0}
+        train_data['gender_num'] = train_data['gender'].map(gender_map)
+        X = train_data[['age', 'gender_num']]  # Features
+        y = train_data['diabetes']  # Labels
 
+        # train the model
+        model = RandomForestClassifier()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)  # 70% training and 30% test
+        model.fit(X_train, y_train)
 
-    print(train_data)
+        # print and show the accuracy of the model
+        y_pred = model.predict(X_test)
+        print("Accuracy of the model:", metrics.accuracy_score(y_test, y_pred))
 
-    gender_map = {"M" : 1, "F" : 0}
-    train_data['gender_num'] = train_data['gender'].map(gender_map)
+        # save the model
+        filename = 'finalized_model.sav'
+        pickle.dump(model, open(filename, 'wb'))
 
-    X=train_data[['age', 'gender_num']]  # Features
-    y=train_data['diabetes']  # Labels
+    train_data=generate_training_data()
+    train_rf_model(train_data)
 
-    # train the model
-    model=RandomForestClassifier()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3) # 70% training and 30% test
-
-    model.fit(X_train,y_train)
-
-    y_pred=model.predict(X_test)
-
-    print(X_test)
-    print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
-
-    # save the model
-    filename = 'finalized_model.sav'
-    pickle.dump(model, open(filename, 'wb'))
-
-    #preprocessing and test data
-    data_2 = {'age': [22],'gender': ['M']}
-    test_data=pd.DataFrame.from_dict(data_2)
-    gender_map = {"M" : 1, "F" : 0}
-    test_data['gender_num'] = test_data['gender'].map(gender_map)
-    test_input=test_data[['age', 'gender_num']]  # Features
-
-
-    # load the model from disk
-    filename = 'finalized_model.sav'
-    loaded_model = pickle.load(open(filename, 'rb'))
-    y_pred_test=loaded_model.predict_proba(test_input)
-    print(y_pred_test[0][0])
-
+if __name__=='main':
+    ModelTrainer()
